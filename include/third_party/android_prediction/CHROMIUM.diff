@@ -1,0 +1,378 @@
+Only in third_party/android_prediction/: BUILD.gn
+Only in third_party/android_prediction/: CHROMIUM.diff
+diff -ru /usr/local/google/home/riajiang/Downloads/android_prediction/defines.h third_party/android_prediction/defines.h
+--- /usr/local/google/home/riajiang/Downloads/android_prediction/defines.h	2015-08-04 11:08:28.000000000 -0700
++++ third_party/android_prediction/defines.h	2015-08-05 17:18:47.846770065 -0700
+@@ -17,6 +17,8 @@
+ #ifndef LATINIME_DEFINES_H
+ #define LATINIME_DEFINES_H
+ 
++#include "base/macros.h"
++
+ #ifdef __GNUC__
+ #define AK_FORCE_INLINE __attribute__((always_inline)) __inline__
+ #else // __GNUC__
+@@ -39,8 +41,8 @@
+ // TODO: Use size_t instead of int.
+ // Disclaimer: You will see a compile error if you use this macro against a variable-length array.
+ // Sorry for the inconvenience. It isn't supported.
+-template <typename T, int N>
+-char (&ArraySizeHelper(T (&array)[N]))[N];
++// template <typename T, int N>
++// char (&ArraySizeHelper(T (&array)[N]))[N];
+ #define NELEMS(x) (sizeof(ArraySizeHelper(x)))
+ 
+ AK_FORCE_INLINE static int intArrayToCharArray(const int *const source, const int sourceSize,
+@@ -348,6 +350,7 @@
+ #define DISALLOW_ASSIGNMENT_OPERATOR(TypeName) \
+   void operator=(const TypeName&) = delete
+ 
++/*
+ #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+   DISALLOW_COPY_CONSTRUCTOR(TypeName);     \
+   DISALLOW_ASSIGNMENT_OPERATOR(TypeName)
+@@ -355,6 +358,7 @@
+ #define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName) \
+   DISALLOW_DEFAULT_CONSTRUCTOR(TypeName);        \
+   DISALLOW_COPY_AND_ASSIGN(TypeName)
++*/
+ 
+ // Used as a return value for character comparison
+ typedef enum {
+Only in third_party/android_prediction/: LICENSE
+Only in third_party/android_prediction/: README.chromium
+diff -ru /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/dictionary/dictionary.cpp third_party/android_prediction/suggest/core/dictionary/dictionary.cpp
+--- /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/dictionary/dictionary.cpp	2015-08-04 11:08:28.000000000 -0700
++++ third_party/android_prediction/suggest/core/dictionary/dictionary.cpp	2015-08-05 17:18:47.574768333 -0700
+@@ -16,31 +16,29 @@
+-#include "utils/log_utils.h"
+ 
+ const int Dictionary::HEADER_ATTRIBUTE_BUFFER_SIZE = 32;
+ 
+-Dictionary::Dictionary(JNIEnv *env, DictionaryStructureWithBufferPolicy::StructurePolicyPtr
++Dictionary::Dictionary(DictionaryStructureWithBufferPolicy::StructurePolicyPtr
+         dictionaryStructureWithBufferPolicy)
+         : mDictionaryStructureWithBufferPolicy(std::move(dictionaryStructureWithBufferPolicy)),
+           mGestureSuggest(new Suggest(GestureSuggestPolicyFactory::getGestureSuggestPolicy())),
+           mTypingSuggest(new Suggest(TypingSuggestPolicyFactory::getTypingSuggestPolicy())) {
+-    logDictionaryInfo(env);
+ }
+ 
+ void Dictionary::getSuggestions(ProximityInfo *proximityInfo, DicTraverseSession *traverseSession,
+@@ -191,32 +189,4 @@
+             token, outCodePoints, outCodePointCount);
+ }
+ 
+-void Dictionary::logDictionaryInfo(JNIEnv *const env) const {
+-    int dictionaryIdCodePointBuffer[HEADER_ATTRIBUTE_BUFFER_SIZE];
+-    int versionStringCodePointBuffer[HEADER_ATTRIBUTE_BUFFER_SIZE];
+-    int dateStringCodePointBuffer[HEADER_ATTRIBUTE_BUFFER_SIZE];
+-    const DictionaryHeaderStructurePolicy *const headerPolicy =
+-            getDictionaryStructurePolicy()->getHeaderStructurePolicy();
+-    headerPolicy->readHeaderValueOrQuestionMark("dictionary", dictionaryIdCodePointBuffer,
+-            HEADER_ATTRIBUTE_BUFFER_SIZE);
+-    headerPolicy->readHeaderValueOrQuestionMark("version", versionStringCodePointBuffer,
+-            HEADER_ATTRIBUTE_BUFFER_SIZE);
+-    headerPolicy->readHeaderValueOrQuestionMark("date", dateStringCodePointBuffer,
+-            HEADER_ATTRIBUTE_BUFFER_SIZE);
+-
+-    char dictionaryIdCharBuffer[HEADER_ATTRIBUTE_BUFFER_SIZE];
+-    char versionStringCharBuffer[HEADER_ATTRIBUTE_BUFFER_SIZE];
+-    char dateStringCharBuffer[HEADER_ATTRIBUTE_BUFFER_SIZE];
+-    intArrayToCharArray(dictionaryIdCodePointBuffer, HEADER_ATTRIBUTE_BUFFER_SIZE,
+-            dictionaryIdCharBuffer, HEADER_ATTRIBUTE_BUFFER_SIZE);
+-    intArrayToCharArray(versionStringCodePointBuffer, HEADER_ATTRIBUTE_BUFFER_SIZE,
+-            versionStringCharBuffer, HEADER_ATTRIBUTE_BUFFER_SIZE);
+-    intArrayToCharArray(dateStringCodePointBuffer, HEADER_ATTRIBUTE_BUFFER_SIZE,
+-            dateStringCharBuffer, HEADER_ATTRIBUTE_BUFFER_SIZE);
+-
+-    LogUtils::logToJava(env,
+-            "Dictionary info: dictionary = %s ; version = %s ; date = %s",
+-            dictionaryIdCharBuffer, versionStringCharBuffer, dateStringCharBuffer);
+-}
+-
+ } // namespace latinime
+diff -ru /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/dictionary/dictionary.h third_party/android_prediction/suggest/core/dictionary/dictionary.h
+--- /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/dictionary/dictionary.h	2015-08-04 11:08:28.000000000 -0700
++++ third_party/android_prediction/suggest/core/dictionary/dictionary.h	2015-08-05 17:18:47.574768333 -0700
+@@ -19,13 +19,12 @@
+-#include "jni.h"
+ 
+@@ -59,7 +58,7 @@
+     static const int KIND_FLAG_EXACT_MATCH = 0x40000000;
+     static const int KIND_FLAG_EXACT_MATCH_WITH_INTENTIONAL_OMISSION = 0x20000000;
+ 
+-    Dictionary(JNIEnv *env, DictionaryStructureWithBufferPolicy::StructurePolicyPtr
++    Dictionary(DictionaryStructureWithBufferPolicy::StructurePolicyPtr
+             dictionaryStructureWithBufferPolicy);
+ 
+     void getSuggestions(ProximityInfo *proximityInfo, DicTraverseSession *traverseSession,
+@@ -136,8 +135,6 @@
+             mDictionaryStructureWithBufferPolicy;
+     const SuggestInterfacePtr mGestureSuggest;
+     const SuggestInterfacePtr mTypingSuggest;
+-
+-    void logDictionaryInfo(JNIEnv *const env) const;
+ };
+ } // namespace latinime
+ #endif // LATINIME_DICTIONARY_H
+Only in /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/dictionary/property: word_property.cpp
+diff -ru /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/dictionary/property/word_property.h third_party/android_prediction/suggest/core/dictionary/property/word_property.h
+--- /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/dictionary/property/word_property.h	2015-08-04 11:08:28.000000000 -0700
++++ third_party/android_prediction/suggest/core/dictionary/property/word_property.h	2015-08-05 17:18:47.578768359 -0700
+@@ -19,10 +19,9 @@
+-#include "jni.h"
+ 
+@@ -38,10 +37,6 @@
+             const std::vector<BigramProperty> *const bigrams)
+             : mCodePoints(*codePoints), mUnigramProperty(*unigramProperty), mBigrams(*bigrams) {}
+ 
+-    void outputProperties(JNIEnv *const env, jintArray outCodePoints, jbooleanArray outFlags,
+-            jintArray outProbabilityInfo, jobject outBigramTargets, jobject outBigramProbabilities,
+-            jobject outShortcutTargets, jobject outShortcutProbabilities) const;
+-
+     const UnigramProperty *getUnigramProperty() const {
+         return &mUnigramProperty;
+     }
+diff -ru /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/layout/proximity_info.cpp third_party/android_prediction/suggest/core/layout/proximity_info.cpp
+--- /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/layout/proximity_info.cpp	2015-08-04 11:08:28.000000000 -0700
++++ third_party/android_prediction/suggest/core/layout/proximity_info.cpp	2015-08-05 17:18:47.578768359 -0700
+@@ -16,46 +16,49 @@
+-#include "jni.h"
+ 
+ namespace latinime {
+ 
+-static AK_FORCE_INLINE void safeGetOrFillZeroIntArrayRegion(JNIEnv *env, jintArray jArray,
+-        jsize len, jint *buffer) {
++static AK_FORCE_INLINE void safeGetOrFillZeroIntArrayRegion(const int *jArray,
++        int len, int *buffer) {
+     if (jArray && buffer) {
+-        env->GetIntArrayRegion(jArray, 0, len, buffer);
++        for (int i = 0; i < len; i++) {
++            buffer[i] = jArray[i];
++        }
+     } else if (buffer) {
+         memset(buffer, 0, len * sizeof(buffer[0]));
+     }
+ }
+ 
+-static AK_FORCE_INLINE void safeGetOrFillZeroFloatArrayRegion(JNIEnv *env, jfloatArray jArray,
+-        jsize len, jfloat *buffer) {
++static AK_FORCE_INLINE void safeGetOrFillZeroFloatArrayRegion(const float *jArray,
++        int len, float *buffer) {
+     if (jArray && buffer) {
+-        env->GetFloatArrayRegion(jArray, 0, len, buffer);
++        for (int i = 0; i < len; i++) {
++            buffer[i] = jArray[i];
++        }
+     } else if (buffer) {
+         memset(buffer, 0, len * sizeof(buffer[0]));
+     }
+ }
+ 
+-ProximityInfo::ProximityInfo(JNIEnv *env, const jstring localeJStr,
++ProximityInfo::ProximityInfo(const std::string localeJStr,
+         const int keyboardWidth, const int keyboardHeight, const int gridWidth,
+         const int gridHeight, const int mostCommonKeyWidth, const int mostCommonKeyHeight,
+-        const jintArray proximityChars, const int keyCount, const jintArray keyXCoordinates,
+-        const jintArray keyYCoordinates, const jintArray keyWidths, const jintArray keyHeights,
+-        const jintArray keyCharCodes, const jfloatArray sweetSpotCenterXs,
+-        const jfloatArray sweetSpotCenterYs, const jfloatArray sweetSpotRadii)
++        int *proximityChars, int proximitySize, const int keyCount, const int *keyXCoordinates,
++        const int *keyYCoordinates, const int *keyWidths, const int *keyHeights,
++        const int *keyCharCodes, const float *sweetSpotCenterXs,
++        const float *sweetSpotCenterYs, const float *sweetSpotRadii)
+         : GRID_WIDTH(gridWidth), GRID_HEIGHT(gridHeight), MOST_COMMON_KEY_WIDTH(mostCommonKeyWidth),
+           MOST_COMMON_KEY_WIDTH_SQUARE(mostCommonKeyWidth * mostCommonKeyWidth),
+           NORMALIZED_SQUARED_MOST_COMMON_KEY_HYPOTENUSE(1.0f +
+@@ -73,7 +76,7 @@
+                   /* proximityCharsLength */]),
+           mLowerCodePointToKeyMap() {
+     /* Let's check the input array length here to make sure */
+-    const jsize proximityCharsLength = env->GetArrayLength(proximityChars);
++    int proximityCharsLength = proximitySize;
+     if (proximityCharsLength != GRID_WIDTH * GRID_HEIGHT * MAX_PROXIMITY_CHARS_SIZE) {
+         AKLOGE("Invalid proximityCharsLength: %d", proximityCharsLength);
+         ASSERT(false);
+@@ -82,23 +85,25 @@
+     if (DEBUG_PROXIMITY_INFO) {
+         AKLOGI("Create proximity info array %d", proximityCharsLength);
+     }
+-    const jsize localeCStrUtf8Length = env->GetStringUTFLength(localeJStr);
++    const int localeCStrUtf8Length = localeJStr.length();
+     if (localeCStrUtf8Length >= MAX_LOCALE_STRING_LENGTH) {
+         AKLOGI("Locale string length too long: length=%d", localeCStrUtf8Length);
+         ASSERT(false);
+     }
+     memset(mLocaleStr, 0, sizeof(mLocaleStr));
+-    env->GetStringUTFRegion(localeJStr, 0, env->GetStringLength(localeJStr), mLocaleStr);
+-    safeGetOrFillZeroIntArrayRegion(env, proximityChars, proximityCharsLength,
++    for (int i = 0; i < localeCStrUtf8Length; i++) {
++        mLocaleStr[i] = localeJStr[i];
++    }
++    safeGetOrFillZeroIntArrayRegion(proximityChars, proximityCharsLength,
+             mProximityCharsArray);
+-    safeGetOrFillZeroIntArrayRegion(env, keyXCoordinates, KEY_COUNT, mKeyXCoordinates);
+-    safeGetOrFillZeroIntArrayRegion(env, keyYCoordinates, KEY_COUNT, mKeyYCoordinates);
+-    safeGetOrFillZeroIntArrayRegion(env, keyWidths, KEY_COUNT, mKeyWidths);
+-    safeGetOrFillZeroIntArrayRegion(env, keyHeights, KEY_COUNT, mKeyHeights);
+-    safeGetOrFillZeroIntArrayRegion(env, keyCharCodes, KEY_COUNT, mKeyCodePoints);
+-    safeGetOrFillZeroFloatArrayRegion(env, sweetSpotCenterXs, KEY_COUNT, mSweetSpotCenterXs);
+-    safeGetOrFillZeroFloatArrayRegion(env, sweetSpotCenterYs, KEY_COUNT, mSweetSpotCenterYs);
+-    safeGetOrFillZeroFloatArrayRegion(env, sweetSpotRadii, KEY_COUNT, mSweetSpotRadii);
++    safeGetOrFillZeroIntArrayRegion(keyXCoordinates, KEY_COUNT, mKeyXCoordinates);
++    safeGetOrFillZeroIntArrayRegion(keyYCoordinates, KEY_COUNT, mKeyYCoordinates);
++    safeGetOrFillZeroIntArrayRegion(keyWidths, KEY_COUNT, mKeyWidths);
++    safeGetOrFillZeroIntArrayRegion(keyHeights, KEY_COUNT, mKeyHeights);
++    safeGetOrFillZeroIntArrayRegion(keyCharCodes, KEY_COUNT, mKeyCodePoints);
++    safeGetOrFillZeroFloatArrayRegion(sweetSpotCenterXs, KEY_COUNT, mSweetSpotCenterXs);
++    safeGetOrFillZeroFloatArrayRegion(sweetSpotCenterYs, KEY_COUNT, mSweetSpotCenterYs);
++    safeGetOrFillZeroFloatArrayRegion(sweetSpotRadii, KEY_COUNT, mSweetSpotRadii);
+     initializeG();
+ }
+ 
+diff -ru /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/layout/proximity_info.h third_party/android_prediction/suggest/core/layout/proximity_info.h
+--- /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/layout/proximity_info.h	2015-08-04 11:08:28.000000000 -0700
++++ third_party/android_prediction/suggest/core/layout/proximity_info.h	2015-08-05 17:18:47.578768359 -0700
+@@ -17,23 +17,23 @@
+ #ifndef LATINIME_PROXIMITY_INFO_H
+ #define LATINIME_PROXIMITY_INFO_H
+ 
++#include <string>
+ #include <unordered_map>
+
+-#include "jni.h"
+ 
+ namespace latinime {
+ 
+ class ProximityInfo {
+  public:
+-    ProximityInfo(JNIEnv *env, const jstring localeJStr,
++    ProximityInfo(const std::string localeJStr,
+             const int keyboardWidth, const int keyboardHeight, const int gridWidth,
+             const int gridHeight, const int mostCommonKeyWidth, const int mostCommonKeyHeight,
+-            const jintArray proximityChars, const int keyCount, const jintArray keyXCoordinates,
+-            const jintArray keyYCoordinates, const jintArray keyWidths, const jintArray keyHeights,
+-            const jintArray keyCharCodes, const jfloatArray sweetSpotCenterXs,
+-            const jfloatArray sweetSpotCenterYs, const jfloatArray sweetSpotRadii);
++            int *proximityChars, int proximitySize, const int keyCount, const int *keyXCoordinates,
++            const int *keyYCoordinates, const int *keyWidths, const int *keyHeights,
++            const int *keyCharCodes, const float *sweetSpotCenterXs,
++            const float *sweetSpotCenterYs, const float *sweetSpotRadii);
+     ~ProximityInfo();
+     bool hasSpaceProximity(const int x, const int y) const;
+     float getNormalizedSquaredDistanceFromCenterFloatG(
+diff -ru /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/result/suggestion_results.cpp third_party/android_prediction/suggest/core/result/suggestion_results.cpp
+--- /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/result/suggestion_results.cpp	2015-08-04 11:08:28.000000000 -0700
++++ third_party/android_prediction/suggest/core/result/suggestion_results.cpp	2015-08-05 17:18:47.582768384 -0700
+@@ -14,39 +14,10 @@
+  * limitations under the License.
+  */
+-#include "utils/jni_data_utils.h"
+ 
+ namespace latinime {
+ 
+-void SuggestionResults::outputSuggestions(JNIEnv *env, jintArray outSuggestionCount,
+-        jintArray outputCodePointsArray, jintArray outScoresArray, jintArray outSpaceIndicesArray,
+-        jintArray outTypesArray, jintArray outAutoCommitFirstWordConfidenceArray,
+-        jfloatArray outLanguageWeight) {
+-    int outputIndex = 0;
+-    while (!mSuggestedWords.empty()) {
+-        const SuggestedWord &suggestedWord = mSuggestedWords.top();
+-        suggestedWord.getCodePointCount();
+-        const int start = outputIndex * MAX_WORD_LENGTH;
+-        JniDataUtils::outputCodePoints(env, outputCodePointsArray, start,
+-                MAX_WORD_LENGTH /* maxLength */, suggestedWord.getCodePoint(),
+-                suggestedWord.getCodePointCount(), true /* needsNullTermination */);
+-        JniDataUtils::putIntToArray(env, outScoresArray, outputIndex, suggestedWord.getScore());
+-        JniDataUtils::putIntToArray(env, outSpaceIndicesArray, outputIndex,
+-                suggestedWord.getIndexToPartialCommit());
+-        JniDataUtils::putIntToArray(env, outTypesArray, outputIndex, suggestedWord.getType());
+-        if (mSuggestedWords.size() == 1) {
+-            JniDataUtils::putIntToArray(env, outAutoCommitFirstWordConfidenceArray, 0 /* index */,
+-                    suggestedWord.getAutoCommitFirstWordConfidence());
+-        }
+-        ++outputIndex;
+-        mSuggestedWords.pop();
+-    }
+-    JniDataUtils::putIntToArray(env, outSuggestionCount, 0 /* index */, outputIndex);
+-    JniDataUtils::putFloatToArray(env, outLanguageWeight, 0 /* index */, mLanguageWeight);
+-}
+-
+ void SuggestionResults::addPrediction(const int *const codePoints, const int codePointCount,
+         const int probability) {
+     if (probability == NOT_A_PROBABILITY) {
+diff -ru /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/result/suggestion_results.h third_party/android_prediction/suggest/core/result/suggestion_results.h
+--- /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/result/suggestion_results.h	2015-08-04 11:08:28.000000000 -0700
++++ third_party/android_prediction/suggest/core/result/suggestion_results.h	2015-08-05 17:18:47.582768384 -0700
+@@ -20,22 +20,17 @@
+-#include "jni.h"
+ 
+ namespace latinime {
+ 
+ class SuggestionResults {
+  public:
+     explicit SuggestionResults(const int maxSuggestionCount)
+-            : mMaxSuggestionCount(maxSuggestionCount), mLanguageWeight(NOT_A_LANGUAGE_WEIGHT),
+-              mSuggestedWords() {}
++            : mSuggestedWords(), mMaxSuggestionCount(maxSuggestionCount), 
++              mLanguageWeight(NOT_A_LANGUAGE_WEIGHT) {}
+ 
+-    // Returns suggestion count.
+-    void outputSuggestions(JNIEnv *env, jintArray outSuggestionCount, jintArray outCodePointsArray,
+-            jintArray outScoresArray, jintArray outSpaceIndicesArray, jintArray outTypesArray,
+-            jintArray outAutoCommitFirstWordConfidenceArray, jfloatArray outLanguageWeight);
+     void addPrediction(const int *const codePoints, const int codePointCount, const int score);
+     void addSuggestion(const int *const codePoints, const int codePointCount,
+             const int score, const int type, const int indexToPartialCommit,
+@@ -51,13 +46,14 @@
+         return mSuggestedWords.size();
+     }
+ 
++    std::priority_queue<
++        SuggestedWord, std::vector<SuggestedWord>, SuggestedWord::Comparator> mSuggestedWords;
++
+  private:
+     DISALLOW_IMPLICIT_CONSTRUCTORS(SuggestionResults);
+ 
+     const int mMaxSuggestionCount;
+     float mLanguageWeight;
+-    std::priority_queue<
+-            SuggestedWord, std::vector<SuggestedWord>, SuggestedWord::Comparator> mSuggestedWords;
+ };
+ } // namespace latinime
+ #endif // LATINIME_SUGGESTION_RESULTS_H
+diff -ru /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/session/dic_traverse_session.h third_party/android_prediction/suggest/core/session/dic_traverse_session.h
+--- /usr/local/google/home/riajiang/Downloads/android_prediction/suggest/core/session/dic_traverse_session.h	2015-08-04 11:08:28.000000000 -0700
++++ third_party/android_prediction/suggest/core/session/dic_traverse_session.h	2015-08-05 17:18:47.582768384 -0700
+@@ -19,11 +19,10 @@
+-#include "jni.h"
+ 
+@@ -37,11 +36,11 @@
+  public:
+ 
+     // A factory method for DicTraverseSession
+-    static AK_FORCE_INLINE void *getSessionInstance(JNIEnv *env, jstring localeStr,
+-            jlong dictSize) {
++    static AK_FORCE_INLINE void *getSessionInstance(std::string localeStr,
++            long dictSize) {
+         // To deal with the trade-off between accuracy and memory space, large cache is used for
+         // dictionaries larger that the threshold
+-        return new DicTraverseSession(env, localeStr,
++        return new DicTraverseSession(localeStr,
+                 dictSize >= DICTIONARY_SIZE_THRESHOLD_TO_USE_LARGE_CACHE_FOR_SUGGESTION);
+     }
+ 
+@@ -49,7 +48,7 @@
+         delete traverseSession;
+     }
+ 
+-    AK_FORCE_INLINE DicTraverseSession(JNIEnv *env, jstring localeStr, bool usesLargeCache)
++    AK_FORCE_INLINE DicTraverseSession(std::string localeStr, bool usesLargeCache)
+             : mProximityInfo(nullptr), mDictionary(nullptr), mSuggestOptions(nullptr),
+               mDicNodesCache(usesLargeCache), mMultiBigramMap(), mInputSize(0), mMaxPointerCount(1),
+               mMultiWordCostMultiplier(1.0f) {
+Only in /usr/local/google/home/riajiang/Downloads/android_prediction/utils: jni_data_utils.cpp
+Only in /usr/local/google/home/riajiang/Downloads/android_prediction/utils: jni_data_utils.h
+Only in /usr/local/google/home/riajiang/Downloads/android_prediction/utils: log_utils.cpp
+Only in /usr/local/google/home/riajiang/Downloads/android_prediction/utils: log_utils.h

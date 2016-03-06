@@ -1,0 +1,29 @@
+Name: android_prediction
+URL: https://android.googlesource.com/platform/packages/inputmethods/LatinIME/
++/android-5.1.1_r8/native/jni/src/
+Version: 5.1.1
+Date: 2015/07/28
+Revision: cc47075cd72d3649433c7a69ae5c88669a56646d
+License: Apache 2.0
+License File: NOT_SHIPPED
+Security Critical: no
+
+Description:
+Android LatinIME jni native code used to do spellcheck, word suggestion and
+word prediction.
+
+Local Modifications:
+Changed all JNI interface functions to not use JNI interface pointer and 
+JNI types. (CHROMIUM.diff)
+
+Changed all includes to be 
+defines.h -> third_party/android_prediction/defines.h,
+suggest/* -> third_party/android_prediction/suggest/*,
+utils/* -> third_party/android_prediction/utils/*
+
+Deleted 
+src/suggest/core/dictionary/property/word_property.cpp,
+src/utils/jni_data_utils.cpp,
+src/utils/jni_data_utils.h,
+src/utils/log_utils.cpp,
+src/utils/log_utils.h

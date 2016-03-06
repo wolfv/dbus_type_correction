@@ -1,0 +1,32 @@
+PredictionService interface provides only one function GetPredictionList 
+which takes infos about previous words and current word (format details in 
+mojo/services/prediction/interfaces/prediction.mojom). 
+Connect to "mojo:prediction_service" to use the service.
+
+Description of each class:
+res/main_en.dict.sha1 is the sha1 of main_en.dict (from Android 
+packages/inputmethods/LatinIME/java/res/raw/main_en.dict).
+main_en.dict is the binary form of English dictionary 
+packages/inputmethods/LatinIME/dictionaries/en_wordlist.combined.gz
+of the form
+packages/inputmethods/LatinIME/java/src/com/android/inputmethod
+/latin/makedict/FormatSpec.java.
+
+DictionaryService creates a latinime::DictionaryStructureWithBufferPolicy
+from our dictionary file and prepares parameters (current word processed by
+InputInfo) for getSuggestions if current word is not empty or getPredictions if
+current word is empty (currently not working due to lack of ngram binary 
+dictionary) from latinime::DictionaryStructureWithBufferPolicy. After it 
+processes the prediction words array, it returns that to PredictionServiceImpl
+which then returns back to the client.
+
+ProximityInfoFactory, TouchPositionCorrection and KeySet provide proximity 
+info of the keys. TouchPositionCorrection and KeySet are hardcoded English 
+QWERTY keyboard values because PredictionService can't get these keyboard 
+values from anywhere for now. 
+
+TODO:
+Add a bigram/ngram binary dictionary. Shouldn't need to change any other code
+if the dictionary is of the same format as main_en.dict. If not, might need to
+update third_party/android_prediction to the latest version.
+
