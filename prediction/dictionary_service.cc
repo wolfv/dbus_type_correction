@@ -12,14 +12,15 @@
 // #include "base/path_service.h"
 // #include "base/strings/string16.h"
 // #include "base/strings/utf_string_conversions.h"
-// #include "mojo/services/prediction/interfaces/prediction.mojom.h"
-// #include "mojo/tools/embed/data.h"
+
 #include "dictionary_service.h"
 #include "input_info.h"
-// Otherwise embedded bullshit
+
+// Otherwise embedded
 // #include "services/prediction/kDictFile.h"
-#include "key_set.h"
+
 #include "context_info.h"
+#include "key_set.h"
 #include "proximity_info_factory.h"
 #include "third_party/android_prediction/suggest/core/dictionary/dictionary.h"
 #include "third_party/android_prediction/suggest/core/result/suggestion_results.h"
@@ -27,51 +28,47 @@
 #include "third_party/android_prediction/suggest/core/session/prev_words_info.h"
 #include "third_party/android_prediction/suggest/core/suggest_options.h"
 #include "third_party/android_prediction/suggest/policyimpl/dictionary/structure/dictionary_structure_with_buffer_policy_factory.h"
-#include <memory>
-#include <iostream>
-#include <sys/stat.h>
-#include <locale>
+
 #include <codecvt>
+#include <iostream>
+#include <locale>
+#include <memory>
+#include <sys/stat.h>
 
-std::wstring s2ws(const std::string& str)
-{
-    typedef std::codecvt_utf8<wchar_t> convert_typeX;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
+std::wstring s2ws(const std::string &str) {
+  typedef std::codecvt_utf8<wchar_t> convert_typeX;
+  std::wstring_convert<convert_typeX, wchar_t> converterX;
 
-    return converterX.from_bytes(str);
+  return converterX.from_bytes(str);
 }
 
-std::string ws2s(const std::wstring& wstr)
-{
-    typedef std::codecvt_utf8<wchar_t> convert_typeX;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
+std::string ws2s(const std::wstring &wstr) {
+  typedef std::codecvt_utf8<wchar_t> convert_typeX;
+  std::wstring_convert<convert_typeX, wchar_t> converterX;
 
-    return converterX.to_bytes(wstr);
+  return converterX.to_bytes(wstr);
 }
 
 namespace prediction {
 
-DictionaryService::DictionaryService() : max_suggestion_size_(50) {
-}
+DictionaryService::DictionaryService() : max_suggestion_size_(50) {}
 
-DictionaryService::~DictionaryService() {
-}
+DictionaryService::~DictionaryService() {}
 
-void DictionaryService::CreatDictFromEmbeddedDataIfNotExist(
-    const std::string path) {
+// void DictionaryService::CreatDictFromEmbeddedDataIfNotExist(
+//     const std::string path) {
 //   if (std::ifstream(path.c_str()))
 //     return;
 //   std::ofstream dic_file(path.c_str(),
 //                          std::ofstream::out | std::ofstream::binary);
 //   dic_file.write(prediction::kDictFile.data, prediction::kDictFile.size);
 //   dic_file.close();
-}
+// }
 
-latinime::Dictionary* const DictionaryService::OpenDictionary(
-    const std::string path,
-    const int start_offset,
-    const int size,
-    const bool is_updatable) {
+latinime::Dictionary *const
+DictionaryService::OpenDictionary(const std::string path,
+                                  const int start_offset, const int size,
+                                  const bool is_updatable) {
   latinime::DictionaryStructureWithBufferPolicy::StructurePolicyPtr
       dictionary_structure_with_buffer_policy(
           latinime::DictionaryStructureWithBufferPolicyFactory::
@@ -81,45 +78,28 @@ latinime::Dictionary* const DictionaryService::OpenDictionary(
     return nullptr;
   }
 
-  latinime::Dictionary* const dictionary = new latinime::Dictionary(
+  latinime::Dictionary *const dictionary = new latinime::Dictionary(
       std::move(dictionary_structure_with_buffer_policy));
   return dictionary;
 }
-size_t getFilesize(const char* filename) {
-    struct stat st;
-    stat(filename, &st);
-    return st.st_size;
+
+std::unique_ptr<latinime::Dictionary> OpenDictionarySimple(const std::string& path)
+{
+
+}
+
+size_t getFilesize(const char *filename) {
+  struct stat st;
+  stat(filename, &st);
+  return st.st_size;
 }
 
 std::vector<std::string> DictionaryService::GetDictionarySuggestion(
+    const latinime::Dictionary* dict,
+    latinime::DicTraverseSession* sess,
     PredictionInfoPtr prediction_info,
-    latinime::ProximityInfo* proximity_info) {
-  std::vector<std::string> suggestion_words =
-      std::vector<std::string>();
-  // base::FilePath dir_temp;
-  // PathService::Get(base::DIR_TEMP, &dir_temp);
-  std::string path = "/tmp/main_en.dict";
-  int filesize = getFilesize(path.c_str());  // dictionary
-  std::cout << "Filezise " << filesize << std::endl; 
-  if (!default_dictionary_) {
-    CreatDictFromEmbeddedDataIfNotExist(path);
-    default_dictionary_ = std::unique_ptr<latinime::Dictionary> (
-      OpenDictionary(path, 0, filesize, false));
-    if (!default_dictionary_) {
-      std::cout << "This dictionary remains closed!" << std::endl;
-      return suggestion_words;
-    }
-  }
-
-  // dic_traverse_session
-  if (!default_session_) {
-    default_session_ = std::unique_ptr<latinime::DicTraverseSession>(
-        reinterpret_cast<latinime::DicTraverseSession*>(
-            latinime::DicTraverseSession::getSessionInstance(
-                "en", filesize)));
-    latinime::PrevWordsInfo empty_prev_words;
-    default_session_->init(default_dictionary_.get(), &empty_prev_words, 0);
-  }
+    latinime::ProximityInfo *proximity_info) {
+  std::vector<std::string> suggestion_words = std::vector<std::string>();
 
   // current word
   int input_size = std::min(
@@ -135,20 +115,23 @@ std::vector<std::string> DictionaryService::GetDictionarySuggestion(
   // is_gesture, use_full_edit_distance,
   // block_offensive_words, space_aware gesture_enabled
   int options[] = {0, 0, 0, 0};
-  latinime::SuggestOptions suggest_options(options, arraysize(options));
 
+  latinime::SuggestOptions suggest_options(options, arraysize(options));
   latinime::SuggestionResults suggestion_results(max_suggestion_size_);
-  if (input_size > 0) {
-    std::cout << "getting suggestions" << std::endl;
-    default_dictionary_->getSuggestions(
-        proximity_info, default_session_.get(), input_info.GetXCoordinates(),
+
+  if (input_size > 0)
+  {
+    // std::cout << "getting suggestions" << std::endl;
+    dict->getSuggestions(
+        proximity_info, sess, input_info.GetXCoordinates(),
         input_info.GetYCoordinates(), input_info.GetTimes(),
         input_info.GetPointerIds(), input_info.GetCodepoints(), input_size,
         &prev_words_info, &suggest_options, -1.0f, &suggestion_results);
-  } else {
-    std::cout << "getting predictions" << std::endl;
-
-    default_dictionary_->getPredictions(&prev_words_info, &suggestion_results);
+  }
+  else
+  {
+    // std::cout << "getting predictions" << std::endl;
+    dict->getPredictions(&prev_words_info, &suggestion_results);
   }
 
   // process suggestion results
@@ -165,14 +148,14 @@ std::vector<std::string> DictionaryService::GetDictionarySuggestion(
     up_cur = std::string(1, (char)toupper(cur_beginning)) + cur_rest;
   }
   while (!suggestion_results.mSuggestedWords.empty()) {
-    const latinime::SuggestedWord& suggested_word =
+    const latinime::SuggestedWord &suggested_word =
         suggestion_results.mSuggestedWords.top();
     // std::cout << suggested_word << std::endl;
-    std::cout << "should utf this thing " << std::endl;
+    // std::cout << "should utf this thing " << std::endl;
     // base::string16 word;
     std::wstring word;
     for (int i = 0; i < suggested_word.getCodePointCount(); i++) {
-    //   base::char16 code_point = suggested_word.getCodePoint()[i];
+      //   base::char16 code_point = suggested_word.getCodePoint()[i];
       word.push_back(suggested_word.getCodePoint()[i]);
     }
     // std::string word_string = base::UTF16ToUTF8(word);
@@ -180,7 +163,8 @@ std::vector<std::string> DictionaryService::GetDictionarySuggestion(
     // std::string word_string = convert.to_bytes(word);
     std::string word_string = ws2s(word);
     // std::string word_string = suggested_word;
-    // if (word_string.compare(lo_cur) != 0 && word_string.compare(up_cur) != 0) {
+    // if (word_string.compare(lo_cur) != 0 && word_string.compare(up_cur) != 0)
+    // {
     //   if (input_size > 0 && isupper(cur_beginning)) {
     //     word_string[0] = toupper(word_string[0]);
     //   }
@@ -210,14 +194,15 @@ std::vector<std::string> DictionaryService::GetDictionarySuggestion(
 }
 
 // modified from Android JniDataUtils::constructPrevWordsInfo
-latinime::PrevWordsInfo DictionaryService::ProcessPrevWord(
-    std::vector<PrevWordInfoPtr>& prev_words) {
+latinime::PrevWordsInfo
+DictionaryService::ProcessPrevWord(std::vector<PrevWordInfoPtr> &prev_words) {
   int prev_word_codepoints[MAX_PREV_WORD_COUNT_FOR_N_GRAM][MAX_WORD_LENGTH] = {
       {0}};
   int prev_word_codepoint_count[MAX_PREV_WORD_COUNT_FOR_N_GRAM] = {0};
   bool are_beginning_of_sentence[MAX_PREV_WORD_COUNT_FOR_N_GRAM] = {false};
   int prevwords_count = std::min(
       prev_words.size(), static_cast<size_t>(MAX_PREV_WORD_COUNT_FOR_N_GRAM));
+
   for (int i = 0; i < prevwords_count; ++i) {
     prev_word_codepoint_count[i] = 0;
     are_beginning_of_sentence[i] = false;
@@ -237,24 +222,4 @@ latinime::PrevWordsInfo DictionaryService::ProcessPrevWord(
   return prev_words_info;
 }
 
-}  // namespace prediction
-
-// int main () {
-//   std::cout << "Test 123" << std::endl;
-//   std::vector<std::string> suggestions;
-//   prediction::PredictionInfo * prediction_info = new prediction::PredictionInfo();
-
-//   prediction_info->previous_words = {new prediction::PrevWordInfo("a", false), new prediction::PrevWordInfo("right", false)};
-//   prediction_info->current_word = "aoetrure";
-//   prediction::ProximityInfoFactory fac = prediction::ProximityInfoFactory();
-//   latinime::ProximityInfo* pinf = fac.GetNativeProximityInfo();
-//   prediction::DictionaryService * ds = new prediction::DictionaryService();
-//   suggestions = ds->GetDictionarySuggestion(
-//     prediction_info, 
-//     pinf);
-//   std::cout << "well how many suggestions?" << suggestions.size() << std::endl;
-//   for(auto s : suggestions) {
-//     std::cout << s << std::endl;
-//   }
-
-// }
+} // namespace prediction

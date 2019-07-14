@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-add_definitions(-std=gnu++0x)
+add_definitions(-std=c++14)
+
+# activate -fPIC
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include_directories(
 	prediction/
 	include/)
 
-message("INclude diries")
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 foreach(dir ${dirs})
   message(STATUS "dir='${dir}'")
 endforeach()
-
-
 
 add_library(suggest
     include/third_party/android_prediction/defines.h
@@ -254,6 +254,5 @@ add_library(prediction_lib
 
 target_link_libraries(prediction_lib suggest)
 
-# target_link_libraries(haha suggest)
-
 add_subdirectory(dbus)
+add_subdirectory(python)

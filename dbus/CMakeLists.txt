@@ -1,7 +1,7 @@
 
 
 add_custom_command(OUTPUT dbus_server_glue.h 
-    COMMAND dbusxx-xml2cpp dbus_server_introspect.xml --adaptor=dbus_server_glue.h)
+    COMMAND dbusxx-xml2cpp ${CMAKE_CURRENT_SOURCE_DIR}/dbus_server_introspect.xml --adaptor=${CMAKE_CURRENT_SOURCE_DIR}/dbus_server_glue.h)
 # target_link
 
 include_directories(
@@ -10,12 +10,13 @@ include_directories(
 )
 
 add_executable(dbus_server
+  EXCLUDE_FROM_ALL
 	dbus_server.cpp
 	dbus_server.h
 	dbus_server_glue.h
 )
 
 target_link_libraries(dbus_server
-	/usr/lib64/libdbus-c++-1.so
+	dbus-c++-1
 	prediction_lib
-	)
+)

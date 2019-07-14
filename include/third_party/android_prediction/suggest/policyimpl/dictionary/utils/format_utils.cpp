@@ -27,16 +27,22 @@ const uint32_t FormatUtils::MAGIC_NUMBER = 0x9BC13AFE;
 const int FormatUtils::DICTIONARY_MINIMUM_SIZE = 12;
 
 /* static */ FormatUtils::FORMAT_VERSION FormatUtils::getFormatVersion(const int formatVersion) {
+    std::cout << " -- >> " << formatVersion << std::endl;
     switch (formatVersion) {
         case VERSION_2:
+            std::cout << "V2";
             return VERSION_2;
         case VERSION_4_ONLY_FOR_TESTING:
+            std::cout << "V4TEST";
             return VERSION_4_ONLY_FOR_TESTING;
         case VERSION_4:
+            std::cout << "V4";
             return VERSION_4;
         case VERSION_4_DEV:
+            std::cout << "V4DEV";
             return VERSION_4_DEV;
         default:
+            std::cout << "VUK";
             return UNKNOWN_VERSION;
     }
 }
@@ -52,7 +58,8 @@ const int FormatUtils::DICTIONARY_MINIMUM_SIZE = 12;
     const uint32_t magicNumber = ByteArrayUtils::readUint32(dict, 0);
     switch (magicNumber) {
         case MAGIC_NUMBER:
-            std::cout << "magic:" << magicNumber << " SHOUDL BE " << MAGIC_NUMBER <<  std::endl;
+            // std::cout << "Correct? " << (magicNumber == MAGIC_NUMBER) << std::endl;
+            // std::cout << "Magic number = " << magicNumber << " which is " << MAGIC_NUMBER <<  std::endl;
 
             // The layout of the header is as follows:
             // Magic number (4 bytes) 0x9B 0xC1 0x3A 0xFE
@@ -62,7 +69,8 @@ const int FormatUtils::DICTIONARY_MINIMUM_SIZE = 12;
             // Conceptually this converts the hardcoded value of the bytes in the file into
             // the symbolic value we use in the code. But we want the constants to be the
             // same so we use them for both here.
-            return getFormatVersion(ByteArrayUtils::readUint16(dict, 4));
+            return VERSION_2;
+            // return getFormatVersion(ByteArrayUtils::readUint16(dict, 4));
         default:
             std::cout << "no magic:" << magicNumber << " SHOUDL BE " << MAGIC_NUMBER <<  std::endl;
             return UNKNOWN_VERSION;

@@ -91,6 +91,5 @@ int main()
 	EchoServer server(conn);
 
 	dispatcher.enter();
-
 	return 0;
 }

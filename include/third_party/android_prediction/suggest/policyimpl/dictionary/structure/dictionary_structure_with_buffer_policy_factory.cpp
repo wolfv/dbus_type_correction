@@ -50,7 +50,6 @@ namespace latinime {
             ASSERT(false);
             return nullptr;
         }
-        std::cout << "opening";
         return newPolicyForFileDict(path, bufOffset, size);
     }
 }
@@ -172,31 +171,23 @@ template<class DictConstants, class DictBuffers, class DictBuffersPtr, class Str
                 const char *const path, const int bufOffset, const int size) {
     // Allocated buffer in MmapedBuffer::openBuffer() will be freed in the destructor of
     // MmappedBufferPtr if the instance has the responsibility.
-            std::cout << path << std::endl;
     MmappedBuffer::MmappedBufferPtr mmappedBuffer(
             MmappedBuffer::openBuffer(path, bufOffset, size, false /* isUpdatable */));
     if (!mmappedBuffer) {
-        std::cout << "EMPTY? " << std::endl;
-
+        std::cout << "Dictionary EMPTY? " << std::endl;
         return nullptr;
     }
     switch (FormatUtils::detectFormatVersion(mmappedBuffer->getReadOnlyByteArrayView().data(),
             mmappedBuffer->getReadOnlyByteArrayView().size())) {
         case FormatUtils::VERSION_2:
-            std::cout << "returning dict!" << std::endl;
             return DictionaryStructureWithBufferPolicy::StructurePolicyPtr(
                     new PatriciaTriePolicy(std::move(mmappedBuffer)));
         case FormatUtils::VERSION_4_ONLY_FOR_TESTING:
         case FormatUtils::VERSION_4:
         case FormatUtils::VERSION_4_DEV:
-            std::cout << "Given path is a file but the format is version 4. path? " << std::endl;
-
             AKLOGE("Given path is a file but the format is version 4. path: %s", path);
             break;
         default:
-            std::cout << "DICT: dictionary format is unknown " <<  FormatUtils::detectFormatVersion(mmappedBuffer->getReadOnlyByteArrayView().data(),
-            mmappedBuffer->getReadOnlyByteArrayView().size()) << std::endl;
-            std::cout << mmappedBuffer->getReadOnlyByteArrayView().size() << std::endl;
             AKLOGE("DICT: dictionary format is unknown, bad magic number. path: %s", path);
             break;
     }

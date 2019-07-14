@@ -25,11 +25,12 @@ class DictionaryService {
   ~DictionaryService();
 
   std::vector<std::string> GetDictionarySuggestion(
+      const latinime::Dictionary* dict,
+      latinime::DicTraverseSession* sess,
       PredictionInfoPtr prediction_info,
       latinime::ProximityInfo* proximity_info);
 
  private:
-  void CreatDictFromEmbeddedDataIfNotExist(const std::string path);
 
   latinime::Dictionary* const OpenDictionary(const std::string path,
                                              const int start_offset,
@@ -43,7 +44,7 @@ class DictionaryService {
   std::unique_ptr<latinime::Dictionary> default_dictionary_;
   std::unique_ptr<latinime::DicTraverseSession> default_session_;
 
-  // DISALLOW_COPY_AND_ASSIGN(DictionaryService);
+  DISALLOW_COPY_AND_ASSIGN(DictionaryService);
 };
 
 }  // namespace prediction
