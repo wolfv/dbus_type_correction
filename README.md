@@ -3,7 +3,7 @@
 suggestr is a Python library for efficient typers -- those who type fast and 
 make mistakes.
 The library is basically the ripped out bits and pieces from the (old) Android
-Open Source keyboard text correction, and then a Pyton interface to that. 
+Open Source keyboard text correction, and then a Python interface to that.
 
 Right now it allows you to load a dictionary in the correct format, and then 
 pass some context and some input, and the text correction will try to match 
