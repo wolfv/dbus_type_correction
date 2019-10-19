@@ -25,6 +25,7 @@
 #include "third_party/android_prediction/suggest/policyimpl/dictionary/structure/backward/v402/ver4_patricia_trie_policy.h"
 
 #include <vector>
+#include <iostream>
 
 #include "third_party/android_prediction/suggest/core/dicnode/dic_node.h"
 #include "third_party/android_prediction/suggest/core/dicnode/dic_node_vector.h"
@@ -195,6 +196,7 @@ int Ver4PatriciaTriePolicy::getBigramsPositionOfPtNode(const int ptNodePos) cons
 
 bool Ver4PatriciaTriePolicy::addUnigramEntry(const int *const word, const int length,
         const UnigramProperty *const unigramProperty) {
+    std::cout << "HELLO UPDATE >..< " << std::endl;
     if (!mBuffers->isUpdatable()) {
         AKLOGI("Warning: addUnigramEntry() is called for non-updatable dictionary.");
         return false;
