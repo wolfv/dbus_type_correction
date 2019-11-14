@@ -126,14 +126,14 @@ std::vector<std::string> DictionaryService::GetDictionarySuggestion(
         proximity_info, sess, input_info.GetXCoordinates(),
         input_info.GetYCoordinates(), input_info.GetTimes(),
         input_info.GetPointerIds(), input_info.GetCodepoints(), input_size,
-        &prev_words_info, &suggest_options, -1.0f, &suggestion_results);
+        &prev_words_info, &suggest_options, 1.0f, &suggestion_results);
   }
   else
   {
-    // std::cout << "getting predictions" << std::endl;
     dict->getPredictions(&prev_words_info, &suggestion_results);
   }
 
+  suggestion_results.dumpSuggestions();
   // process suggestion results
   std::deque<std::string> suggestion_words_reverse;
   char cur_beginning;
@@ -150,26 +150,16 @@ std::vector<std::string> DictionaryService::GetDictionarySuggestion(
   while (!suggestion_results.mSuggestedWords.empty()) {
     const latinime::SuggestedWord &suggested_word =
         suggestion_results.mSuggestedWords.top();
-    // std::cout << suggested_word << std::endl;
-    // std::cout << "should utf this thing " << std::endl;
-    // base::string16 word;
+
     std::wstring word;
     for (int i = 0; i < suggested_word.getCodePointCount(); i++) {
       //   base::char16 code_point = suggested_word.getCodePoint()[i];
       word.push_back(suggested_word.getCodePoint()[i]);
     }
-    // std::string word_string = base::UTF16ToUTF8(word);
 
-    // std::string word_string = convert.to_bytes(word);
     std::string word_string = ws2s(word);
-    // std::string word_string = suggested_word;
-    // if (word_string.compare(lo_cur) != 0 && word_string.compare(up_cur) != 0)
-    // {
-    //   if (input_size > 0 && isupper(cur_beginning)) {
-    //     word_string[0] = toupper(word_string[0]);
-    //   }
-    //   suggestion_words_reverse.push_front(word_string);
-    // }
+    std::cout << "Score: " << suggested_word.getScore() << " - " << word_string << std::endl;
+
     suggestion_words_reverse.push_front(word_string);
     suggestion_results.mSuggestedWords.pop();
   }

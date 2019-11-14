@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-add_definitions(-std=c++14)
+add_definitions(-std=c++14 -O3)
+
+add_definitions(-DHOST_TOOL -DFLAG_DO_PROFILE -DFLAG_DBG)
 
 # activate -fPIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

@@ -196,7 +196,6 @@ int Ver4PatriciaTriePolicy::getBigramsPositionOfPtNode(const int ptNodePos) cons
 
 bool Ver4PatriciaTriePolicy::addUnigramEntry(const int *const word, const int length,
         const UnigramProperty *const unigramProperty) {
-    std::cout << "HELLO UPDATE >..< " << std::endl;
     if (!mBuffers->isUpdatable()) {
         AKLOGI("Warning: addUnigramEntry() is called for non-updatable dictionary.");
         return false;
