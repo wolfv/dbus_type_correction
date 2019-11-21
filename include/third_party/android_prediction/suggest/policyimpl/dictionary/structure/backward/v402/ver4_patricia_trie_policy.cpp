@@ -25,6 +25,7 @@
 #include "third_party/android_prediction/suggest/policyimpl/dictionary/structure/backward/v402/ver4_patricia_trie_policy.h"
 
 #include <vector>
+#include <iostream>
 
 #include "third_party/android_prediction/suggest/core/dicnode/dic_node.h"
 #include "third_party/android_prediction/suggest/core/dicnode/dic_node_vector.h"

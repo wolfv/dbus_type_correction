@@ -27,22 +27,17 @@ const uint32_t FormatUtils::MAGIC_NUMBER = 0x9BC13AFE;
 const int FormatUtils::DICTIONARY_MINIMUM_SIZE = 12;
 
 /* static */ FormatUtils::FORMAT_VERSION FormatUtils::getFormatVersion(const int formatVersion) {
-    std::cout << " -- >> " << formatVersion << std::endl;
     switch (formatVersion) {
         case VERSION_2:
-            std::cout << "V2";
+        case VERSION_202:
             return VERSION_2;
         case VERSION_4_ONLY_FOR_TESTING:
-            std::cout << "V4TEST";
             return VERSION_4_ONLY_FOR_TESTING;
         case VERSION_4:
-            std::cout << "V4";
             return VERSION_4;
         case VERSION_4_DEV:
-            std::cout << "V4DEV";
             return VERSION_4_DEV;
         default:
-            std::cout << "VUK";
             return UNKNOWN_VERSION;
     }
 }
@@ -52,15 +47,12 @@ const int FormatUtils::DICTIONARY_MINIMUM_SIZE = 12;
     // If the dictionary is less than 4 bytes, we can't even read the magic number, so we don't
     // understand this format.
     if (dictSize < DICTIONARY_MINIMUM_SIZE) {
-        std::cout << "too small ... :(" << std::endl;
         return UNKNOWN_VERSION;
     }
     const uint32_t magicNumber = ByteArrayUtils::readUint32(dict, 0);
+    FormatUtils::FORMAT_VERSION version; 
     switch (magicNumber) {
         case MAGIC_NUMBER:
-            // std::cout << "Correct? " << (magicNumber == MAGIC_NUMBER) << std::endl;
-            // std::cout << "Magic number = " << magicNumber << " which is " << MAGIC_NUMBER <<  std::endl;
-
             // The layout of the header is as follows:
             // Magic number (4 bytes) 0x9B 0xC1 0x3A 0xFE
             // Dictionary format version number (2 bytes)
@@ -69,10 +61,10 @@ const int FormatUtils::DICTIONARY_MINIMUM_SIZE = 12;
             // Conceptually this converts the hardcoded value of the bytes in the file into
             // the symbolic value we use in the code. But we want the constants to be the
             // same so we use them for both here.
-            return VERSION_2;
-            // return getFormatVersion(ByteArrayUtils::readUint16(dict, 4));
+            // return VERSION_2;
+            version = getFormatVersion(ByteArrayUtils::readUint16(dict, 4));
+            return version;
         default:
-            std::cout << "no magic:" << magicNumber << " SHOUDL BE " << MAGIC_NUMBER <<  std::endl;
             return UNKNOWN_VERSION;
     }
 }

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-add_definitions(-std=c++14)
+add_definitions(-std=c++14 -O3)
+
+add_definitions(-DHOST_TOOL -DFLAG_DO_PROFILE -DFLAG_DBG)
 
 # activate -fPIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -227,18 +229,6 @@ add_library(suggest
     include/third_party/android_prediction/utils/time_keeper.cpp
     include/third_party/android_prediction/utils/time_keeper.h
 )
-
-# add_executable(haha 
-# 	prediction/dictionary_service.cc
-#     prediction/dictionary_service.h
-#     prediction/input_info.cc
-#     prediction/input_info.h
-#     prediction/key_set.h
-#     prediction/proximity_info_factory.cc
-#     prediction/proximity_info_factory.h
-#     prediction/touch_position_correction.cc
-#     prediction/touch_position_correction.h
-# )
 
 add_library(prediction_lib 
     prediction/dictionary_service.cc

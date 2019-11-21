@@ -5,13 +5,14 @@
 #ifndef SERVICES_PREDICTION_INPUT_INFO_H_
 #define SERVICES_PREDICTION_INPUT_INFO_H_
 #include <string>
-// #include "mojo/services/prediction/interfaces/prediction.mojom.h";
+#include <vector>
+#include "key_set.h"
 
 namespace prediction {
 
 class InputInfo {
  public:
-  InputInfo(std::string& input, int input_size);
+  InputInfo(std::string& input, int input_size, const std::vector<Key>* keyset);
   ~InputInfo();
 
   int* GetCodepoints();
@@ -31,6 +32,7 @@ class InputInfo {
   int* pointer_ids_;
   int* times_;
 
+  const std::vector<Key>* keyset_;
 };  // class InputInfo
 
 }  // namespace prediction

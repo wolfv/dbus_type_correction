@@ -40,7 +40,9 @@ namespace latinime {
         DictionaryStructureWithBufferPolicyFactory::newPolicyForExistingDictFile(
                 const char *const path, const int bufOffset, const int size,
                 const bool isUpdatable) {
+    std::cout << "Loading" << std::endl;
     if (FileUtils::existsDir(path)) {
+        std::cout << "we got a directory! HELLO!" << std::endl;
         // Given path represents a directory.
         return newPolicyForDirectoryDict(path, isUpdatable);
     } else {
@@ -110,14 +112,16 @@ template<class DictConstants, class DictBuffers, class DictBuffersPtr, class Str
     MmappedBuffer::MmappedBufferPtr mmappedBuffer =
             MmappedBuffer::openBuffer(headerFilePath, isUpdatable);
     if (!mmappedBuffer) {
+        throw std::runtime_error("no mmaped buffer found");
         return nullptr;
     }
     const FormatUtils::FORMAT_VERSION formatVersion = FormatUtils::detectFormatVersion(
             mmappedBuffer->getReadOnlyByteArrayView().data(),
             mmappedBuffer->getReadOnlyByteArrayView().size());
+    std::cout << formatVersion << std::endl;
     switch (formatVersion) {
         case FormatUtils::VERSION_2:
-            AKLOGE("Given path is a directory but the format is version 2. path: %s", path);
+            throw std::runtime_error("Given path is a directory but the format is version 2.");
             break;
         case FormatUtils::VERSION_4: {
             return newPolicyForV4Dict<backward::v402::Ver4DictConstants,
@@ -133,7 +137,7 @@ template<class DictConstants, class DictBuffers, class DictBuffersPtr, class Str
                             headerFilePath, formatVersion, std::move(mmappedBuffer));
         }
         default:
-            AKLOGE("DICT: dictionary format is unknown, bad magic number. path: %s", path);
+            throw std::runtime_error("DICT: dictionary format is unknown, bad magic number.");
             break;
     }
     ASSERT(false);
@@ -180,15 +184,16 @@ template<class DictConstants, class DictBuffers, class DictBuffersPtr, class Str
     switch (FormatUtils::detectFormatVersion(mmappedBuffer->getReadOnlyByteArrayView().data(),
             mmappedBuffer->getReadOnlyByteArrayView().size())) {
         case FormatUtils::VERSION_2:
+        case FormatUtils::VERSION_202:
             return DictionaryStructureWithBufferPolicy::StructurePolicyPtr(
                     new PatriciaTriePolicy(std::move(mmappedBuffer)));
         case FormatUtils::VERSION_4_ONLY_FOR_TESTING:
         case FormatUtils::VERSION_4:
         case FormatUtils::VERSION_4_DEV:
-            AKLOGE("Given path is a file but the format is version 4. path: %s", path);
+            throw std::runtime_error("Given path is a file but the format is version 4.");
             break;
         default:
-            AKLOGE("DICT: dictionary format is unknown, bad magic number. path: %s", path);
+            throw std::runtime_error("DICT: dictionary format is unknown, bad magic number.");
             break;
     }
     ASSERT(false);

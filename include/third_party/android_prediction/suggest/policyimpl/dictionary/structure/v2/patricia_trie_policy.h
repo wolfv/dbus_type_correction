@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <iostream>
 
 #include "third_party/android_prediction/defines.h"
 #include "third_party/android_prediction/suggest/core/policy/dictionary_structure_with_buffer_policy.h"
@@ -85,6 +86,7 @@ class PatriciaTriePolicy : public DictionaryStructureWithBufferPolicy {
     bool addUnigramEntry(const int *const word, const int length,
             const UnigramProperty *const unigramProperty) {
         // This method should not be called for non-updatable dictionary.
+        std::cout << "Warning: addUnigramEntry() is called for non-updatable dictionary . PTRIE. " << std::endl;;
         AKLOGI("Warning: addUnigramEntry() is called for non-updatable dictionary.");
         return false;
     }

@@ -17,6 +17,7 @@
 #include "third_party/android_prediction/suggest/policyimpl/dictionary/structure/v4/ver4_patricia_trie_policy.h"
 
 #include <vector>
+#include <iostream>
 
 #include "third_party/android_prediction/suggest/core/dicnode/dic_node.h"
 #include "third_party/android_prediction/suggest/core/dicnode/dic_node_vector.h"
@@ -185,16 +186,21 @@ int Ver4PatriciaTriePolicy::getBigramsPositionOfPtNode(const int ptNodePos) cons
 
 bool Ver4PatriciaTriePolicy::addUnigramEntry(const int *const word, const int length,
         const UnigramProperty *const unigramProperty) {
+    std::cout << "ADDING UNIGRAM??" << std::endl;
     if (!mBuffers->isUpdatable()) {
+    std::cout << "Not update??" << std::endl;
+
         AKLOGI("Warning: addUnigramEntry() is called for non-updatable dictionary.");
         return false;
     }
     if (mDictBuffer->getTailPosition() >= MIN_DICT_SIZE_TO_REFUSE_DYNAMIC_OPERATIONS) {
+    std::cout << "Too large??" << std::endl;
         AKLOGE("The dictionary is too large to dynamically update. Dictionary size: %d",
                 mDictBuffer->getTailPosition());
         return false;
     }
     if (length > MAX_WORD_LENGTH) {
+    std::cout << "Wordlenght??" << std::endl;
         AKLOGE("The word is too long to insert to the dictionary, length: %d", length);
         return false;
     }

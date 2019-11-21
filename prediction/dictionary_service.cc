@@ -94,17 +94,20 @@ size_t getFilesize(const char *filename) {
   return st.st_size;
 }
 
-std::vector<std::string> DictionaryService::GetDictionarySuggestion(
+std::vector<std::tuple<std::string, int>>
+DictionaryService::GetDictionarySuggestion(
     const latinime::Dictionary* dict,
     latinime::DicTraverseSession* sess,
     PredictionInfoPtr prediction_info,
-    latinime::ProximityInfo *proximity_info) {
-  std::vector<std::string> suggestion_words = std::vector<std::string>();
+    latinime::ProximityInfo *proximity_info,
+    const std::vector<Key>* keyset) {
+
+  std::vector<std::tuple<std::string, int>> suggestion_words;
 
   // current word
   int input_size = std::min(
       static_cast<int>(prediction_info->current_word.size()), MAX_WORD_LENGTH);
-  InputInfo input_info(prediction_info->current_word, input_size);
+  InputInfo input_info(prediction_info->current_word, input_size, keyset);
   input_size = input_info.GetRealSize();
 
   // previous words
@@ -119,23 +122,21 @@ std::vector<std::string> DictionaryService::GetDictionarySuggestion(
   latinime::SuggestOptions suggest_options(options, arraysize(options));
   latinime::SuggestionResults suggestion_results(max_suggestion_size_);
 
-  if (input_size > 0)
-  {
-    // std::cout << "getting suggestions" << std::endl;
+  if (input_size > 0) {
     dict->getSuggestions(
         proximity_info, sess, input_info.GetXCoordinates(),
         input_info.GetYCoordinates(), input_info.GetTimes(),
         input_info.GetPointerIds(), input_info.GetCodepoints(), input_size,
-        &prev_words_info, &suggest_options, -1.0f, &suggestion_results);
+        &prev_words_info, &suggest_options, 1.0f, &suggestion_results);
   }
-  else
-  {
-    // std::cout << "getting predictions" << std::endl;
+  else {
     dict->getPredictions(&prev_words_info, &suggestion_results);
   }
 
+  suggestion_results.dumpSuggestions();
+
   // process suggestion results
-  std::deque<std::string> suggestion_words_reverse;
+  std::deque<std::tuple<std::string, int>> suggestion_words_reverse;
   char cur_beginning;
   std::string lo_cur;
   std::string up_cur;
@@ -150,34 +151,24 @@ std::vector<std::string> DictionaryService::GetDictionarySuggestion(
   while (!suggestion_results.mSuggestedWords.empty()) {
     const latinime::SuggestedWord &suggested_word =
         suggestion_results.mSuggestedWords.top();
-    // std::cout << suggested_word << std::endl;
-    // std::cout << "should utf this thing " << std::endl;
-    // base::string16 word;
+
     std::wstring word;
     for (int i = 0; i < suggested_word.getCodePointCount(); i++) {
       //   base::char16 code_point = suggested_word.getCodePoint()[i];
       word.push_back(suggested_word.getCodePoint()[i]);
     }
-    // std::string word_string = base::UTF16ToUTF8(word);
 
-    // std::string word_string = convert.to_bytes(word);
     std::string word_string = ws2s(word);
-    // std::string word_string = suggested_word;
-    // if (word_string.compare(lo_cur) != 0 && word_string.compare(up_cur) != 0)
-    // {
-    //   if (input_size > 0 && isupper(cur_beginning)) {
-    //     word_string[0] = toupper(word_string[0]);
-    //   }
-    //   suggestion_words_reverse.push_front(word_string);
-    // }
-    suggestion_words_reverse.push_front(word_string);
+    // std::cout << "Score: " << suggested_word.getScore() << " - " << word_string << std::endl;
+
+    suggestion_words_reverse.push_front(std::make_tuple(word_string, suggested_word.getScore()));
     suggestion_results.mSuggestedWords.pop();
   }
 
   // remove dups within suggestion words
   for (size_t i = 0; i < suggestion_words_reverse.size(); i++) {
     for (size_t j = i + 1; j < suggestion_words_reverse.size(); j++) {
-      if (suggestion_words_reverse[i].compare(suggestion_words_reverse[j]) ==
+      if (std::get<0>(suggestion_words_reverse[i]).compare(std::get<0>(suggestion_words_reverse[j])) ==
           0) {
         suggestion_words_reverse.erase(suggestion_words_reverse.begin() + j);
         j--;
@@ -185,9 +176,9 @@ std::vector<std::string> DictionaryService::GetDictionarySuggestion(
     }
   }
 
-  for (std::deque<std::string>::iterator it = suggestion_words_reverse.begin();
+  for (auto it = suggestion_words_reverse.begin();
        it != suggestion_words_reverse.end(); ++it) {
-    suggestion_words.push_back(std::string(*it));
+    suggestion_words.push_back(*it);
   }
 
   return suggestion_words;

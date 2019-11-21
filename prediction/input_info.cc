@@ -10,7 +10,9 @@
 
 namespace prediction {
 
-InputInfo::InputInfo(std::string& input, int input_size) {
+InputInfo::InputInfo(std::string& input, int input_size, const std::vector<Key>* keyset)
+  : keyset_(keyset)
+{
   real_size_ = 0;
   for (int i = 0; i < input_size; i++) {
     int codepoint = (int)input[i];
@@ -67,12 +69,12 @@ void InputInfo::ProcessInput(std::string& input, int input_size) {
     if ((codepoint >= 'a' && codepoint <= 'z') ||
         (codepoint >= 'A' && codepoint <= 'Z')) {
       codepoints_[real_index] = codepoint;
-      for (int j = 0; j < keyset::key_count; j++) {
-        if (keyset::key_set[j].kcode == tolower(codepoint)) {
+      for (int j = 0; j < keyset_->size(); j++) {
+        if ((*keyset_)[j].kcode == tolower(codepoint)) {
           x_coordinates_[real_index] =
-              keyset::key_set[j].kx + keyset::key_set[j].kwidth / 2;
+              (*keyset_)[j].kx + (*keyset_)[j].kwidth / 2;
           y_coordinates_[real_index] =
-              keyset::key_set[j].ky + keyset::key_set[j].kheight / 2;
+              (*keyset_)[j].ky + (*keyset_)[j].kheight / 2;
           break;
         }
       }

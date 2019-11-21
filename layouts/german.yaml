@@ -1,0 +1,95 @@
+# German layout by Mark Müller
+# Version 2019101900
+---
+bounds: { x: 0, y: 1, width: 360, height: 210 }
+
+outlines:
+    default:
+        bounds: { x: 0, y: 0, width: 35.33, height: 52 }
+    altline:
+        bounds: { x: 0, y: 0, width: 52.67, height: 52 }
+    wide:
+        bounds: { x: 0, y: 0, width: 62, height: 52 }
+    spaceline:
+        bounds: { x: 0, y: 0, width: 99.67, height: 52 }
+    special:
+        bounds: { x: 0, y: 0, width: 35.33, height: 52 }
+
+views:
+    base:
+        - "q w e r t z u i o p"
+        - "a s d f g h j k l"
+        - "Shift_L   y x c v b n m  BackSpace"
+        - "show_numbers show_dechars preferences         space        , period Return"
+    upper:
+        - "Q W E R T Z U I O P"
+        - "A S D F G H J K L"
+        - "Shift_L   Y X C V B N M  BackSpace"
+        - "show_numbers show_dechars preferences         space        ! ? Return"
+    numbers:
+        - "1 2 3 4 5 6 7 8 9 0"
+        - "@ # € % & - _ + ( )"
+        - "show_symbols   , \" ' colon = < >  BackSpace"
+        - "show_letters show_dechars preferences         space        , period Return"
+    symbols:
+        - "~ ` ´ | · √ µ ÷ × ¶"
+        - "© ® £ $ ¥ ^ ° * { }"
+        - "show_numbers   \\ / § π τ [ ]  BackSpace"
+        - "show_letters show_dechars preferences         space        , period Return"
+    dechars:
+        - "ä è é ö ü Ä È É Ö Ü"
+        - "à â ê î ô À Â È Î Ô"
+        - "show_numbers  « » ç Ç æ œ ß  BackSpace"
+        - "show_letters show_dechars preferences         space        „ “ Return"
+
+buttons:
+    Shift_L:
+        action:
+            locking:
+                lock_view: "upper"
+                unlock_view: "base"
+        outline: "altline"
+        icon: "key-shift"
+    BackSpace:
+        outline: "altline"
+        icon: "edit-clear-symbolic"
+    preferences:
+        action: "show_prefs"
+        outline: "special"
+        icon: "keyboard-mode-symbolic"
+    show_numbers:
+        action:
+            set_view: "numbers"
+        outline: "altline"
+        label: "123"
+    show_letters:
+        action:
+            set_view: "base"
+        outline: "altline"
+        label: "abc"
+    show_symbols:
+        action:
+            set_view: "symbols"
+        outline: "altline"
+        label: "*/="
+    show_dechars:
+        action:
+            locking:
+                lock_view: "dechars"
+                unlock_view: "base"
+        outline: "altline"
+        label: "äÄ"
+
+    period:
+        outline: "default"
+        label: "."
+    space:
+        outline: "spaceline"
+        label: " "
+    Return:
+        outline: "altline"
+        icon: "key-enter"
+    colon:
+        label: ":"
+    "\"":
+        keysym: "quotedbl"
