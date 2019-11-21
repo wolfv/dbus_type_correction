@@ -7,8 +7,8 @@
 // #include "mojo/public/cpp/application/application_connection.h"
 // #include "mojo/public/cpp/application/application_delegate.h"
 // #include "mojo/public/cpp/bindings/strong_binding.h"
-#include "services/prediction/dictionary_service.h"
-#include "services/prediction/prediction_service_impl.h"
+#include "prediction/dictionary_service.h"
+#include "prediction/prediction_service_impl.h"
 
 namespace prediction {
 

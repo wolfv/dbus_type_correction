@@ -24,11 +24,12 @@ class DictionaryService {
   DictionaryService();
   ~DictionaryService();
 
-  std::vector<std::string> GetDictionarySuggestion(
+  std::vector<std::tuple<std::string, int>> GetDictionarySuggestion(
       const latinime::Dictionary* dict,
       latinime::DicTraverseSession* sess,
       PredictionInfoPtr prediction_info,
-      latinime::ProximityInfo* proximity_info);
+      latinime::ProximityInfo* proximity_info,
+      const std::vector<Key>* keyset);
 
  private:
 

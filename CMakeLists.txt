@@ -230,18 +230,6 @@ add_library(suggest
     include/third_party/android_prediction/utils/time_keeper.h
 )
 
-# add_executable(haha 
-# 	prediction/dictionary_service.cc
-#     prediction/dictionary_service.h
-#     prediction/input_info.cc
-#     prediction/input_info.h
-#     prediction/key_set.h
-#     prediction/proximity_info_factory.cc
-#     prediction/proximity_info_factory.h
-#     prediction/touch_position_correction.cc
-#     prediction/touch_position_correction.h
-# )
-
 add_library(prediction_lib 
     prediction/dictionary_service.cc
     prediction/dictionary_service.h

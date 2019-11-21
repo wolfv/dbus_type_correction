@@ -1,0 +1,43 @@
+---
+bounds: { x: 0, y: 0.33, width: 360, height: 210 }
+
+outlines:
+    default:
+        bounds: { x: 0, y: 0, width: 37.46341, height: 52 }
+    altline:
+        bounds: { x: 0, y: 0, width: 48.39024, height: 52 }
+    outline7:
+        bounds: { x: 0, y: 0, width: 88.97561, height: 52 }
+    spaceline:
+        bounds: { x: 0, y: 0, width: 120.5853, height: 52 }
+
+views:
+    base:
+        - "1 2 3 parenleft parenright"
+        - "4 5 6 numbersign asterisk"
+        - "7 8 9 plus minus"
+        - "BackSpace 0 space Return"
+
+buttons:
+    BackSpace:
+        outline: "altline"
+        icon: "edit-clear-symbolic"
+    space:
+        outline: spaceline
+        label: " "
+    Return:
+        outline: outline7
+        icon: "key-enter"
+    asterisk:
+        label: "*"
+    numbersign:
+        label: "#"
+    minus:
+        label: "-"
+    plus:
+        label: "+"
+    parenleft:
+        label: "("
+    parenright:
+        label: ")"
+

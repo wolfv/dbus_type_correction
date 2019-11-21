@@ -9,17 +9,25 @@ Right now it allows you to load a dictionary in the correct format, and then
 pass some context and some input, and the text correction will try to match 
 words to the provided input. 
 
+Keyboard layouts can be read from the yaml files in `layouts`. They come from the
+Librem5 project for squeekboard, their software keyboard implementation.
+It would be interesting to also have some layouts for specific notebook models in 
+the future.
+
 For example:
 
 ```py
-dct, sess = open_dictionary("../dicts/main_en.dict")
+import suggestr
+dct, sess = suggestr.open_dictionary("./dicts/main_en.dict")
+key_layout = suggestr.layout_to_keys('./layouts/german.yaml')
+
 word = "teet"
 context = ["this", "is", "a"]
 
 print("Completion context: ", context)
 print("current input: ", word)
 
-sug = suggestr.get_suggestion(word, context, dct, sess)
+sug = suggestr.get_suggestion(word, context, dct, sess, key_layout)
 print("Suggestions: ", sug)
 ```
 

@@ -3,12 +3,12 @@
 #include <pybind11/stl.h>
 #include <tuple>
 
-#define HOST_TOOL
-#define FLAG_DO_PROFILE
-#define FLAG_DBG
+// Debug flags
+// #define HOST_TOOL
+// #define FLAG_DO_PROFILE
+// #define FLAG_DBG
 
 #include "third_party/android_prediction/suggest/core/dictionary/dictionary.h"
-// #include "third_party/android_prediction/suggest/core/dictionary/property/unigram_property.h"
 #include "third_party/android_prediction/suggest/core/result/suggestion_results.h"
 #include "third_party/android_prediction/suggest/core/session/dic_traverse_session.h"
 #include "third_party/android_prediction/suggest/core/session/prev_words_info.h"
@@ -37,7 +37,6 @@ namespace utils
         return res;
     }
 }
-
 
 auto get_session(latinime::DictionaryStructureWithBufferPolicy::StructurePolicyPtr&& dict_ptr) {
     if (!dict_ptr) {
@@ -80,20 +79,35 @@ auto toPrevWordsInfo(const std::vector<prediction::PrevWordInfo>& pwi)
     std::vector<int[MAX_WORD_LENGTH]> codePoints(pwi.size());
     std::vector<int> counts(pwi.size());
     std::vector<char> isBeginningOfSentence(pwi.size());
-    for (std::size_t i = 0; i < pwi.size(); ++i) {
+    
+    for (std::size_t i = 0; i < pwi.size(); ++i)
+    {
         auto v = utils::s2v(pwi[i].word);
         std::copy(v.begin(), v.end(), std::begin(codePoints[i]));
         counts[i] = v.size();
         isBeginningOfSentence[i] = pwi[i].is_beginning_of_sentence;
     }
+
     return latinime::PrevWordsInfo(codePoints.data(), counts.data(), (const bool*)isBeginningOfSentence.data(), pwi.size());
 }
 
-PYBIND11_MODULE(suggestr, m) {
-    m.doc() = "Python module to the suggestr"; // optional module docstring
+PYBIND11_MODULE(_suggestr, m) {
+    m.doc() = "Python module of the suggestr"; // optional module docstring
 
     static prediction::DictionaryService* dictionary_service = new prediction::DictionaryService();
     
+    py::class_<prediction::Key>(m, "Key")
+        .def(py::init<int, int, int, int, int, int, int>(),
+            py::arg("code"),
+            py::arg("x"),
+            py::arg("y"),
+            py::arg("width"),
+            py::arg("height"),
+            py::arg("horizontal_gap"),
+            py::arg("vertical_gap")
+        )
+    ;
+
     py::class_<prediction::PrevWordInfo>(m, "PrevWordInfo")
         .def(py::init<std::string, bool>())
     ;
@@ -101,7 +115,6 @@ PYBIND11_MODULE(suggestr, m) {
     py::class_<latinime::DicTraverseSession>(m, "DicTraverseSession");
 
     py::class_<latinime::Dictionary>(m, "Dictionary")
-        // .def("add_unigram", &latinime::Dictionary::addUnigramEntry)
         .def("add_unigram", [](latinime::Dictionary& self, 
                                const std::string& str,
                                const latinime::UnigramProperty& prop) {
@@ -157,9 +170,6 @@ PYBIND11_MODULE(suggestr, m) {
 
     py::class_<latinime::UnigramProperty>(m, "UnigramProperty")
         .def(py::init<>())
-        // .def(py::init<>(const bool representsBeginningOfSentence, const bool isNotAWord,
-        //     const bool isBlacklisted, const int probability, const int timestamp, const int level,
-        //     const int count, const std::vector<ShortcutProperty> *const shortcuts))
         .def(py::init<bool, bool, bool, int, int, int, int, const std::vector<latinime::UnigramProperty::ShortcutProperty>*>(),
             py::arg("representsBeginningOfSentence")=false,
             py::arg("isNotAWord")=false,
@@ -212,16 +222,14 @@ PYBIND11_MODULE(suggestr, m) {
         .def("get_count", [](const latinime::BigramProperty& self) { return self.getCount(); })
     ;
 
-    m.def("make_dictionary", []() {
+    m.def("make_dictionary", [](const std::string& locale) {
         using structure_policy_ptr = latinime::DictionaryStructureWithBufferPolicy::StructurePolicyPtr;
-        // newPolicyForOnMemoryDict(const int formatVersion, const std::vector<int> &locale,
-        // const DictionaryHeaderStructurePolicy::AttributeMap *const attributeMap);
 
         latinime::DictionaryHeaderStructurePolicy::AttributeMap attributes;
 
         structure_policy_ptr dict_ptr = latinime::DictionaryStructureWithBufferPolicyFactory::newPolicyForOnMemoryDict(
             latinime::FormatUtils::VERSION_4,
-            utils::s2v("en_US"),
+            utils::s2v(locale),
             &attributes
         );
         return get_session(std::move(dict_ptr));
@@ -240,7 +248,9 @@ PYBIND11_MODULE(suggestr, m) {
 
     m.def("get_suggestion", [](const std::string& stump, 
         const std::vector<prediction::PrevWordInfo*>& context,
-        const latinime::Dictionary* dict, latinime::DicTraverseSession* sess) {
+        const latinime::Dictionary* dict,
+        latinime::DicTraverseSession* sess,
+        const std::vector<prediction::Key>* keyset) {
 
         prediction::PredictionInfo * prediction_info = new prediction::PredictionInfo {
             stump, context
@@ -251,7 +261,7 @@ PYBIND11_MODULE(suggestr, m) {
         latinime::ProximityInfo* proximity_info = fac.GetNativeProximityInfo();
 
         auto suggestions = dictionary_service->GetDictionarySuggestion(
-            dict, sess, prediction_info, proximity_info);
+            dict, sess, prediction_info, proximity_info, keyset);
 
         return suggestions;
     });
